@@ -3,8 +3,8 @@ services:
   - type: web
     name: jansevak-backend
     env: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: .
+    dockerfilePath: Dockerfile
+    dockerContext: ./backend
     plan: free
     healthCheckPath: /api/login # Or a dedicated health endpoint
     envVars:
@@ -29,8 +29,8 @@ services:
   - type: web
     name: jansevak-frontend
     env: docker
-    dockerfilePath: ./frontend/Dockerfile.frontend
-    dockerContext: .
+    dockerfilePath: Dockerfile.frontend
+    dockerContext: ./frontend
     plan: free
     envVars:
       - key: VITE_API_URL
