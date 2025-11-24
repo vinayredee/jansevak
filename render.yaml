@@ -37,7 +37,7 @@ services:
         fromService:
           type: web
           name: jansevak-backend
-          property: url
+          property: host
 
 databases:
   - name: jansevak-db

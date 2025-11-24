@@ -12,7 +12,10 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const apiBase = import.meta.env.VITE_API_URL || "";
+  let apiBase = import.meta.env.VITE_API_URL || "";
+  if (apiBase && !apiBase.startsWith("http")) {
+    apiBase = `https://${apiBase}`;
+  }
   const res = await fetch(`${apiBase}${url}`, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
@@ -30,7 +33,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
     async ({ queryKey }) => {
-      const apiBase = import.meta.env.VITE_API_URL || "";
+      let apiBase = import.meta.env.VITE_API_URL || "";
+      if (apiBase && !apiBase.startsWith("http")) {
+        apiBase = `https://${apiBase}`;
+      }
       const url = queryKey.join("/");
       const res = await fetch(`${apiBase}${url}`, {
         credentials: "include",
