@@ -1,0 +1,8 @@
+node_modules
+server-java
+server
+.git
+.idea
+.vscode
+dist
+uploads

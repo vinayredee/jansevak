@@ -1,0 +1,52 @@
+services:
+  # Backend Service (Java Spring Boot)
+  - type: web
+    name: jansevak-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /api/login # Or a dedicated health endpoint
+    envVars:
+      - key: SERVER_PORT
+        value: 8080
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: jansevak-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: jansevak-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: jansevak-db
+          property: password
+      - key: FRONTEND_URL
+        value: https://jansevak-frontend.onrender.com # Update this if your frontend URL is different
+
+  # Frontend Service (React + Nginx)
+  - type: web
+    name: jansevak-frontend
+    env: docker
+    dockerfilePath: ./frontend/Dockerfile.frontend
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: jansevak-backend
+          property: url
+
+databases:
+  - name: jansevak-db
+    plan: free
+    databaseName: jansevak
+    user: jansevak
+
+# NOTE: 
+# 1. Render's free tier spins down after inactivity (slow first request).
+# 2. The 'connectionString' from Render is 'postgres://...', but Spring Boot usually needs 'jdbc:postgresql://...'.
+#    However, modern drivers often support both or we might need a small tweak. 
+#    If it fails, you might need to append '?sslmode=require' or change the env var format in the Render dashboard.

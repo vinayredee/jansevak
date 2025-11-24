@@ -1,0 +1,9 @@
+package com.jansevak.dto;
+
+import lombok.Data;
+
+@Data
+public class CreateComplaintRequest {
+    private String title;
+    private String description;
+}
