@@ -1,4 +1,4 @@
-# JanSevak - Digital Public Grievance Portal
+Digital Public Grievance Portal
 
 **Developed by:** Kundu Vinay Kumar Reddy  
 **Education:** B.Tech CSE Graduate  
@@ -9,7 +9,7 @@
 - **Source Code:** [GitHub Repository](https://github.com/vinayredee/jansevak)
 
 ## 📋 About
-JanSevak is a comprehensive digital platform designed to streamline public grievance reporting and resolution for Indian government services. Citizens can report issues such as road damage, water supply problems, and infrastructure concerns, while administrators can track, manage, and resolve complaints efficiently.
+Digital Public Seva is a comprehensive digital platform designed to streamline public grievance reporting and resolution for Indian government services. Citizens can report issues such as road damage, water supply problems, and infrastructure concerns, while administrators can track, manage, and resolve complaints efficiently.
 
 ## 🛠️ Technology Stack
 
