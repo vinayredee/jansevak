@@ -2,7 +2,9 @@ FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
-RUN mvn clean package -DskipTests
+# Optimize for Render Free Tier (512MB RAM)
+ENV MAVEN_OPTS="-Xmx300m -Xms300m"
+RUN mvn clean package -DskipTests -e
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
