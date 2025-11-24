@@ -6,7 +6,7 @@ services:
     dockerfilePath: Dockerfile
     dockerContext: ./backend
     plan: free
-    healthCheckPath: /api/login # Or a dedicated health endpoint
+    healthCheckPath: /api/health # Or a dedicated health endpoint
     envVars:
       - key: SERVER_PORT
         value: 8080
