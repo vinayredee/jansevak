@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/layout/Navbar";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/use-auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -17,7 +19,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Clock, Phone, Mail, MapPin, Image as ImageIcon, X } from "lucide-react";
+import { AlertTriangle, Clock, Phone, Mail, MapPin, Image as ImageIcon, X, User } from "lucide-react";
 
 const INDIAN_STATES = [
   { value: "andhra-pradesh", label: "Andhra Pradesh" },
@@ -153,6 +155,7 @@ const formSchema = z.object({
 
 export default function ReportIssue() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -351,272 +354,78 @@ ${values.description}
               </CardHeader>
               <CardContent>
                 <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                    {/* State and Location */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FormField
-                        control={form.control}
-                        name="state"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>State *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select your state" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {INDIAN_STATES.map(({ value, label }) => (
-                                  <SelectItem key={value} value={value}>
-                                    {label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="district"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>District/City *</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., Bangalore Urban" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FormField
-                        control={form.control}
-                        name="pincode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Pincode (Optional)</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., 560001" maxLength={6} {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="location"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>
-                              <MapPin className="inline h-4 w-4 mr-1" />
-                              Specific Location/Area *
-                            </FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., MG Road, near City Mall" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Sector and Priority */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <FormField
-                        control={form.control}
-                        name="sector"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Sector/Department *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a sector" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {SECTORS.map(({ value, label }) => (
-                                  <SelectItem key={value} value={value}>
-                                    {label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="priority"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Priority Level *</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select priority" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {PRIORITY_LEVELS.map(({ value, label, description }) => (
-                                  <SelectItem key={value} value={value}>
-                                    <div className="flex items-center gap-2">
-                                      <span>{label}</span>
-                                      <span className="text-xs text-muted-foreground">- {description}</span>
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    {/* Expected Timeline */}
-                    {selectedPriority && (
-                      <Alert className={`${selectedPriority.color} border-2`}>
-                        <Clock className="h-4 w-4" />
-                        <AlertDescription>
-                          <strong>Expected Resolution Time:</strong> {selectedPriority.timeline}
-                        </AlertDescription>
-                      </Alert>
-                    )}
-
-                    {/* Quick Tags */}
-                    <FormField
-                      control={form.control}
-                      name="quickTag"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Quick Category (Optional)</FormLabel>
-                          <FormControl>
-                            <div className="flex flex-wrap gap-2">
-                              {QUICK_TAGS.map((tag) => (
-                                <Badge
-                                  key={tag}
-                                  variant={field.value === tag ? "default" : "outline"}
-                                  className="cursor-pointer"
-                                  style={{
-                                    backgroundColor: field.value === tag ? "var(--color-saffron)" : "transparent",
-                                    color: field.value === tag ? "white" : "inherit",
-                                  }}
-                                  onClick={() => {
-                                    field.onChange(tag);
-                                    if (tag !== "Other" && !form.getValues("subject")) {
-                                      form.setValue("subject", tag);
-                                    }
-                                  }}
-                                >
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </div>
-                          </FormControl>
-                          <FormDescription>
-                            Select a category to auto-fill the subject
-                          </FormDescription>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="subject"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Subject *</FormLabel>
-                          <FormControl>
-                            <Input placeholder="Brief title of the issue" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Detailed Description *</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Please describe the issue in detail..."
-                              className="min-h-[120px]"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Image Upload */}
-                    <div className="space-y-3">
-                      <Label>
-                        <ImageIcon className="inline h-4 w-4 mr-1" />
-                        Attach Images (Optional, max 3)
-                      </Label>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        onChange={handleImageChange}
-                        disabled={selectedFiles.length >= 3}
-                      />
-                      {imagePreviews.length > 0 && (
-                        <div className="grid grid-cols-3 gap-4 mt-4">
-                          {imagePreviews.map((preview, index) => (
-                            <div key={index} className="relative">
-                              <img
-                                src={preview}
-                                alt={`Preview ${index + 1}`}
-                                className="w-full h-32 object-cover rounded-lg border-2"
-                                style={{ borderColor: "var(--color-navy)" }}
-                              />
-                              <Button
-                                type="button"
-                                variant="destructive"
-                                size="icon"
-                                className="absolute top-1 right-1 h-6 w-6"
-                                onClick={() => removeImage(index)}
-                              >
-                                <X className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Contact Information */}
-                    <div className="border-t pt-6">
-                      <h3 className="text-lg font-semibold mb-4" style={{ color: "var(--color-navy)" }}>
-                        Contact Information (Optional but Recommended)
+                  {!user ? (
+                    <div className="text-center py-10 space-y-4">
+                      <div className="w-16 h-16 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <User className="h-8 w-8" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                        Authentication Required
                       </h3>
+                      <p className="text-gray-500 max-w-md mx-auto">
+                        To ensure accountability and track your grievance status, you must be logged in to report an issue.
+                      </p>
+                      <div className="flex justify-center gap-4 mt-6">
+                        <Link href="/auth">
+                          <Button className="bg-[#000080] hover:bg-[#000060] text-white px-8">
+                            Login / Register
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  ) : (
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                      {/* State and Location */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
                           control={form.control}
-                          name="phone"
+                          name="state"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>
-                                <Phone className="inline h-4 w-4 mr-1" />
-                                Phone Number
-                              </FormLabel>
+                              <FormLabel>State *</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select your state" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {INDIAN_STATES.map(({ value, label }) => (
+                                    <SelectItem key={value} value={value}>
+                                      {label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={form.control}
+                          name="district"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>District/City *</FormLabel>
                               <FormControl>
-                                <Input placeholder="10-digit mobile number" maxLength={10} {...field} />
+                                <Input placeholder="e.g., Bangalore Urban" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormField
+                          control={form.control}
+                          name="pincode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Pincode (Optional)</FormLabel>
+                              <FormControl>
+                                <Input placeholder="e.g., 560001" maxLength={6} {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -625,15 +434,15 @@ ${values.description}
 
                         <FormField
                           control={form.control}
-                          name="email"
+                          name="location"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>
-                                <Mail className="inline h-4 w-4 mr-1" />
-                                Email Address
+                                <MapPin className="inline h-4 w-4 mr-1" />
+                                Specific Location/Area *
                               </FormLabel>
                               <FormControl>
-                                <Input type="email" placeholder="your.email@example.com" {...field} />
+                                <Input placeholder="e.g., MG Road, near City Mall" {...field} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -641,57 +450,272 @@ ${values.description}
                         />
                       </div>
 
-                      <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                      {/* Sector and Priority */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormField
                           control={form.control}
-                          name="notifyBySMS"
+                          name="sector"
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>Notify by SMS</FormLabel>
-                              </div>
+                            <FormItem>
+                              <FormLabel>Sector/Department *</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select a sector" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {SECTORS.map(({ value, label }) => (
+                                    <SelectItem key={value} value={value}>
+                                      {label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
                             </FormItem>
                           )}
                         />
 
                         <FormField
                           control={form.control}
-                          name="notifyByEmail"
+                          name="priority"
                           render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value}
-                                  onCheckedChange={field.onChange}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>Notify by Email</FormLabel>
-                              </div>
+                            <FormItem>
+                              <FormLabel>Priority Level *</FormLabel>
+                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select priority" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {PRIORITY_LEVELS.map(({ value, label, description }) => (
+                                    <SelectItem key={value} value={value}>
+                                      <div className="flex items-center gap-2">
+                                        <span>{label}</span>
+                                        <span className="text-xs text-muted-foreground">- {description}</span>
+                                      </div>
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
                             </FormItem>
                           )}
                         />
                       </div>
-                    </div>
 
-                    <div className="flex justify-end pt-4">
-                      <Button
-                        type="submit"
-                        size="lg"
-                        className="w-full sm:w-auto text-white"
-                        style={{ backgroundColor: "var(--color-navy)" }}
-                        disabled={mutation.isPending}
-                      >
-                        {mutation.isPending ? "Submitting..." : "Submit Grievance"}
-                      </Button>
-                    </div>
-                  </form>
+                      {/* Expected Timeline */}
+                      {selectedPriority && (
+                        <Alert className={`${selectedPriority.color} border-2`}>
+                          <Clock className="h-4 w-4" />
+                          <AlertDescription>
+                            <strong>Expected Resolution Time:</strong> {selectedPriority.timeline}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+
+                      {/* Quick Tags */}
+                      <FormField
+                        control={form.control}
+                        name="quickTag"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Quick Category (Optional)</FormLabel>
+                            <FormControl>
+                              <div className="flex flex-wrap gap-2">
+                                {QUICK_TAGS.map((tag) => (
+                                  <Badge
+                                    key={tag}
+                                    variant={field.value === tag ? "default" : "outline"}
+                                    className="cursor-pointer"
+                                    style={{
+                                      backgroundColor: field.value === tag ? "var(--color-saffron)" : "transparent",
+                                      color: field.value === tag ? "white" : "inherit",
+                                    }}
+                                    onClick={() => {
+                                      field.onChange(tag);
+                                      if (tag !== "Other" && !form.getValues("subject")) {
+                                        form.setValue("subject", tag);
+                                      }
+                                    }}
+                                  >
+                                    {tag}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </FormControl>
+                            <FormDescription>
+                              Select a category to auto-fill the subject
+                            </FormDescription>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="subject"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Subject *</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Brief title of the issue" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={form.control}
+                        name="description"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Detailed Description *</FormLabel>
+                            <FormControl>
+                              <Textarea
+                                placeholder="Please describe the issue in detail..."
+                                className="min-h-[120px]"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+
+                      {/* Image Upload */}
+                      <div className="space-y-3">
+                        <Label>
+                          <ImageIcon className="inline h-4 w-4 mr-1" />
+                          Attach Images (Optional, max 3)
+                        </Label>
+                        <Input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleImageChange}
+                          disabled={selectedFiles.length >= 3}
+                        />
+                        {imagePreviews.length > 0 && (
+                          <div className="grid grid-cols-3 gap-4 mt-4">
+                            {imagePreviews.map((preview, index) => (
+                              <div key={index} className="relative">
+                                <img
+                                  src={preview}
+                                  alt={`Preview ${index + 1}`}
+                                  className="w-full h-32 object-cover rounded-lg border-2"
+                                  style={{ borderColor: "var(--color-navy)" }}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="destructive"
+                                  size="icon"
+                                  className="absolute top-1 right-1 h-6 w-6"
+                                  onClick={() => removeImage(index)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Contact Information */}
+                      <div className="border-t pt-6">
+                        <h3 className="text-lg font-semibold mb-4" style={{ color: "var(--color-navy)" }}>
+                          Contact Information (Optional but Recommended)
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <FormField
+                            control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>
+                                  <Phone className="inline h-4 w-4 mr-1" />
+                                  Phone Number
+                                </FormLabel>
+                                <FormControl>
+                                  <Input placeholder="10-digit mobile number" maxLength={10} {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>
+                                  <Mail className="inline h-4 w-4 mr-1" />
+                                  Email Address
+                                </FormLabel>
+                                <FormControl>
+                                  <Input type="email" placeholder="your.email@example.com" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                          <FormField
+                            control={form.control}
+                            name="notifyBySMS"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel>Notify by SMS</FormLabel>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+
+                          <FormField
+                            control={form.control}
+                            name="notifyByEmail"
+                            render={({ field }) => (
+                              <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                  />
+                                </FormControl>
+                                <div className="space-y-1 leading-none">
+                                  <FormLabel>Notify by Email</FormLabel>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end pt-4">
+                        <Button
+                          type="submit"
+                          size="lg"
+                          className="w-full sm:w-auto text-white"
+                          style={{ backgroundColor: "var(--color-navy)" }}
+                          disabled={mutation.isPending}
+                        >
+                          {mutation.isPending ? "Submitting..." : "Submit Grievance"}
+                        </Button>
+                      </div>
+                    </form>
+                  )}
                 </Form>
               </CardContent>
             </Card>

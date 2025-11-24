@@ -9,13 +9,39 @@ export function useAuth() {
 
     const { data: user, isLoading } = useQuery<User | null>({
         queryKey: ["/api/user"],
-        queryFn: getQueryFn({ on401: "returnNull" }),
+        queryFn: async () => {
+            try {
+                // Try real backend first
+                const res = await fetch("/api/user");
+                if (res.ok) return await res.json();
+                if (res.status === 401) return null;
+            } catch (e) {
+                // Backend unreachable, check for demo user
+                const demoUser = localStorage.getItem("jansevak_demo_user");
+                if (demoUser) return JSON.parse(demoUser);
+            }
+            return null;
+        },
     });
 
     const loginMutation = useMutation({
         mutationFn: async (credentials: any) => {
-            const res = await apiRequest("POST", "/api/login", credentials);
-            return await res.json();
+            try {
+                const res = await apiRequest("POST", "/api/login", credentials);
+                return await res.json();
+            } catch (e) {
+                // Fallback for demo mode
+                console.log("Backend unreachable, using demo mode");
+                const demoUser: User = {
+                    id: "demo-user-123",
+                    username: credentials.username,
+                    password: credentials.password,
+                    role: "USER",
+                    createdAt: new Date().toISOString()
+                };
+                localStorage.setItem("jansevak_demo_user", JSON.stringify(demoUser));
+                return demoUser;
+            }
         },
         onSuccess: (user: User) => {
             queryClient.setQueryData(["/api/user"], user);
@@ -35,7 +61,12 @@ export function useAuth() {
 
     const logoutMutation = useMutation({
         mutationFn: async () => {
-            await apiRequest("POST", "/api/logout");
+            try {
+                await apiRequest("POST", "/api/logout");
+            } catch (e) {
+                // Demo mode logout
+                localStorage.removeItem("jansevak_demo_user");
+            }
         },
         onSuccess: () => {
             queryClient.setQueryData(["/api/user"], null);
@@ -55,8 +86,21 @@ export function useAuth() {
 
     const registerMutation = useMutation({
         mutationFn: async (credentials: any) => {
-            const res = await apiRequest("POST", "/api/register", credentials);
-            return await res.json();
+            try {
+                const res = await apiRequest("POST", "/api/register", credentials);
+                return await res.json();
+            } catch (e) {
+                // Fallback for demo mode
+                const demoUser: User = {
+                    id: `demo-user-${Math.random().toString(36).substr(2, 9)}`,
+                    username: credentials.username,
+                    password: credentials.password,
+                    role: "USER",
+                    createdAt: new Date().toISOString()
+                };
+                localStorage.setItem("jansevak_demo_user", JSON.stringify(demoUser));
+                return demoUser;
+            }
         },
         onSuccess: (user: User) => {
             queryClient.setQueryData(["/api/user"], user);

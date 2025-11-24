@@ -184,7 +184,7 @@ export function Navbar() {
                   <div className="mt-6">
                     <Link href="/auth">
                       <Button
-                        className="w-full bg-white text-navy-900 hover:bg-gray-100"
+                        className="w-full bg-[#000080] text-white hover:bg-[#000060]"
                         onClick={() => setIsOpen(false)}
                       >
                         Login
